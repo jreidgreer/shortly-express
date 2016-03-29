@@ -44,18 +44,23 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(id, done) {
+  console.log('ID IS:     ', id);
   new User({'id': id})
     .fetch()
     .then(function(found) {
+      console.log('DID WE FIND THE USER???:     ', found);
       if (!found) {
-        done('User Not Found');
+        done(null, 'User Not Found');
       } else {
         done(null, found);
       }
     });
 });
 
-
+app.use('/', function(req, res, next) {
+  console.log('REQUEST METHOD:   ', req.method, '  at  ', req.url);
+  next();
+});
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -135,7 +140,8 @@ function(req, res) {
   res.render('login');
 });
 
-app.post('/login', passport.authenticate('local'), function(req, res) {
+app.post('/login', passport.authenticate('local', {failureRedirect: '/login'}), function(req, res) {
+
   var tempPassportSession = req.session.passport;
   req.session.regenerate(function() {
     req.session.passport = tempPassportSession;
@@ -160,7 +166,8 @@ app.post('/signup', function(req, res, next) {
           next();
         });
       } else {
-        res.redirect('/register');
+        console.log('User already exists.');
+        res.redirect('/signup');
       }
     });
 

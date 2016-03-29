@@ -52,10 +52,10 @@ describe('', function() {
       .del()
       .catch(function(error) {
         // uncomment when writing authentication tests
-        // throw {
-        //   type: 'DatabaseError',
-        //   message: 'Failed to create test setup data'
-        // };
+        throw {
+          type: 'DatabaseError',
+          message: 'Failed to create test setup data'
+        };
       });
   });
 
@@ -103,6 +103,30 @@ describe('', function() {
 
     describe('Shortening links:', function() {
 
+      // var requestWithSession = request.defaults({jar: true});
+
+      // before(function(done) {
+      //   // create a user that we can then log-in with
+      //   new User({
+      //     'username': 'Phillip',
+      //     'password': 'Phillip'
+      //   }).save().then(function() {
+      //     var options = {
+      //       'method': 'POST',
+      //       'followAllRedirects': true,
+      //       'uri': 'http://127.0.0.1:4568/login',
+      //       'json': {
+      //         'username': 'Phillip',
+      //         'password': 'Phillip'
+      //       }
+      //     };
+      //     // login via form and save session info
+      //     requestWithSession(options, function(error, res, body) {
+      //       done();
+      //     });
+      //   });
+      // });
+
       var options = {
         'method': 'POST',
         'followAllRedirects': true,
@@ -114,6 +138,7 @@ describe('', function() {
 
       it('Responds with the short code', function(done) {
         requestWithSession(options, function(error, res, body) {
+          console.log('Response Body    ', res.body);
           expect(res.body.url).to.equal('http://roflzoo.com/');
           expect(res.body.code).to.not.be.null;
           done();
