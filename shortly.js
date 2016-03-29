@@ -147,7 +147,7 @@ app.get('/signup', function(request, response) {
   response.render('signup');
 });
 
-app.post('/signup', function(req, res) {
+app.post('/signup', function(req, res, next) {
   var username = req.body.username;
   var password = req.body.password;
 
@@ -156,16 +156,20 @@ app.post('/signup', function(req, res) {
     .fetch()
     .then(function(found) {
       if (!found) {
-        newUser.set('password', password).save();
-        req.session.regenerate(function() {
-          req.session.username = username;
-          res.redirect('/');
+        newUser.set('password', password).save().then(function() {
+          next();
         });
       } else {
         res.redirect('/register');
       }
     });
 
+}, passport.authenticate('local'), function(req, res) {
+  var tempPassportSession = req.session.passport;
+  req.session.regenerate(function() {
+    req.session.passport = tempPassportSession;
+    res.redirect('/');
+  });
 });
 
 app.get('/logout', function(request, response) {
