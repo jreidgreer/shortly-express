@@ -26,7 +26,8 @@ app.use(express.static(__dirname + '/public'));
 app.use(session({
   secret: 'keyboard cat',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: { path: '/', httpOnly: true, secure: false, maxAge: 60000 }
 }));
 
 
@@ -106,7 +107,7 @@ app.post('/login', function(req, res) {
               res.redirect('/login');
             } else {
               req.session.regenerate(function() {
-                req.session.username = found.username;
+                req.session.username = found.attributes.username;
                 res.redirect('/');
               });
             }
