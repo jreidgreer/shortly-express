@@ -142,6 +142,11 @@ app.post('/signup', function(req, res) {
 
 });
 
+app.get('/logout', function(request, response) {
+  request.session.destroy();
+  response.redirect('/login');
+});
+
 
 
 /************************************************************/
