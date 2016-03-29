@@ -35,24 +35,20 @@ function(req, res) {
   res.render('index');
 });
 
-app.get('/login', 
-function(req, res) {
-  res.render('login');
-});
 
-app.get('/create', 
+app.get('/create', util.authCheck,
 function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
+app.get('/links', util.authCheck,
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
 
-app.post('/links', 
+app.post('/links', util.authCheck,
 function(req, res) {
   var uri = req.body.url;
 
@@ -87,6 +83,15 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+
+app.get('/login', 
+function(req, res) {
+  res.render('login');
+});
+
+app.post('/login', function(req, res) {
+  
+});
 
 
 
