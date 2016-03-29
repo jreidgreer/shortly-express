@@ -117,6 +117,31 @@ app.post('/login', function(req, res) {
 
 });
 
+app.get('/signup', function(request, response) {
+  response.render('signup');
+});
+
+app.post('/signup', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+
+  var newUser = new User({'username': username});
+  newUser
+    .fetch()
+    .then(function(found) {
+      if (!found) {
+        newUser.set('password', password).save();
+        req.session.regenerate(function() {
+          req.session.username = username;
+          res.redirect('/');
+        });
+      } else {
+        res.redirect('/register');
+      }
+    });
+
+});
+
 
 
 /************************************************************/
