@@ -3,6 +3,10 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var session = require('express-session');
+var passport = require('passport');
+var GitHubStrategy = require('passport-github').Strategy;
+var LocalStrategy = require('passport-local').Strategy;
+
 
 
 var db = require('./app/config');
@@ -13,6 +17,45 @@ var Link = require('./app/models/link');
 var Click = require('./app/models/click');
 
 var app = express();
+
+//Configure Passport Strategies
+
+passport.use(new LocalStrategy(function(username, password, done) {
+  new User({'username': username})
+    .fetch()
+    .then(function(found) {
+      if (!found) {
+        return done(null, false, {message: 'Incorrect username.'});
+      } else {
+        found.checkPassword(password, found.get('password'))
+          .then(function(authSuccess) {
+            if (!authSuccess) {
+              return done(null, false, {message: 'Incorrect password.'});
+            } else {
+              return done(null, found);
+            }
+          });
+      }
+    });
+}));
+
+passport.serializeUser(function(user, done) {
+  done(null, user.get('id'));
+});
+
+passport.deserializeUser(function(id, done) {
+  new User({'id': id})
+    .fetch()
+    .then(function(found) {
+      if (!found) {
+        done('User Not Found');
+      } else {
+        done(null, found);
+      }
+    });
+});
+
+
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -29,6 +72,8 @@ app.use(session({
   saveUninitialized: true,
   cookie: { path: '/', httpOnly: true, secure: false, maxAge: 60000 }
 }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 app.get('/', util.authCheck,
@@ -90,31 +135,12 @@ function(req, res) {
   res.render('login');
 });
 
-app.post('/login', function(req, res) {
-
-  var username = req.body.username;
-  var password = req.body.password;
-
-  new User({'username': username})
-    .fetch()
-    .then(function(found) {
-      if (!found) {
-        res.redirect('/login');
-      } else {
-        found.checkPassword(password, found.get('password'))
-          .then(function(authSuccess) {
-            if (!authSuccess) {
-              res.redirect('/login');
-            } else {
-              req.session.regenerate(function() {
-                req.session.username = found.attributes.username;
-                res.redirect('/');
-              });
-            }
-          });
-      }
-    });
-
+app.post('/login', passport.authenticate('local'), function(req, res) {
+  var tempPassportSession = req.session.passport;
+  req.session.regenerate(function() {
+    req.session.passport = tempPassportSession;
+    res.redirect('/');
+  });
 });
 
 app.get('/signup', function(request, response) {
