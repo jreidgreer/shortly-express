@@ -90,7 +90,30 @@ function(req, res) {
 });
 
 app.post('/login', function(req, res) {
-  
+
+  var username = req.body.username;
+  var password = req.body.password;
+
+  new User({'username': username})
+    .fetch()
+    .then(function(found) {
+      if (!found) {
+        res.redirect('/login');
+      } else {
+        found.checkPassword(password, found.get('password'))
+          .then(function(authSuccess) {
+            if (!authSuccess) {
+              res.redirect('/login');
+            } else {
+              req.session.regenerate(function() {
+                req.session.username = found.username;
+                res.redirect('/');
+              });
+            }
+          });
+      }
+    });
+
 });
 
 
