@@ -39,6 +39,32 @@ passport.use(new LocalStrategy(function(username, password, done) {
     });
 }));
 
+passport.use(new GitHubStrategy({
+  clientID: '220db353801a31cce48d',
+  clientSecret: 'a9a172254e143d3f581c37bb20c68ff66db3022f',
+  callbackURL: 'http://localhost:4568/github/callback'
+}, function(accessToken, refreshToken, profile, callback) {
+  console.log('ACCESS TOKEN:    >', accessToken);
+  console.log('REFRESH TOKEN:    >', refreshToken);
+  console.log('PROFILE:    >', profile);
+
+
+
+  var newUser = new User({'github': profile.username});
+  newUser
+    .fetch()
+    .then(function(found) {
+      if (found) {
+        callback(null, found);
+      } else {
+        newUser.save()
+        .then(function() {
+          callback(null, newUser);
+        });
+      }
+    });
+}));
+
 passport.serializeUser(function(user, done) {
   done(null, user.get('id'));
 });
@@ -148,6 +174,20 @@ app.post('/login', passport.authenticate('local', {failureRedirect: '/login'}), 
     res.redirect('/');
   });
 });
+
+app.get('/github/auth', passport.authenticate('github', {
+  failureRedirect: '/login'
+}));
+
+app.get('/github/callback', 
+  passport.authenticate('github', {failureRedirect: '/login'}),
+  function(req, res) {
+    var tempPassportSession = req.session.passport;
+    req.session.regenerate(function() {
+      req.session.passport = tempPassportSession;
+      res.redirect('/');
+    });
+  });
 
 app.get('/signup', function(request, response) {
   response.render('signup');

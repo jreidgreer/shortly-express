@@ -7,18 +7,19 @@ var User = db.Model.extend({
   tableName: 'users',
   initialize: function() {
     this.on('creating', function(model, attrs, options) {
-      console.log('User Model', attrs);
-      return new Promise(function(resolve, reject) {
-        bcrypt.hash(model.get('password'), null, null, function(err, hash) {
-          if (err) {
-            console.log('Error creating initial password hash  :', err);
-            reject(err);
-          } else {
-            model.set('password', hash);
-            resolve(null);
-          }
+      if (model.get('password')) {
+        return new Promise(function(resolve, reject) {
+          bcrypt.hash(model.get('password'), null, null, function(err, hash) {
+            if (err) {
+              console.log('Error creating initial password hash  :', err);
+              reject(err);
+            } else {
+              model.set('password', hash);
+              resolve(null);
+            }
+          });
         });
-      });
+      }
     }); 
   },
 
