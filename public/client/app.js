@@ -17,7 +17,15 @@ window.Shortly = Backbone.View.extend({
   },
 
   render: function() {
+
+    var activeUser = new Shortly.ActiveUser({username: '', avatar: ''});
+    var activeUserView = new Shortly.ActiveUserView({model: activeUser});
+    activeUser.fetch();
+
+    console.log(activeUser);
+
     this.$el.html( this.template() );
+    this.$el.find('.navigation').append(activeUserView.render().$el);
     return this;
   },
 

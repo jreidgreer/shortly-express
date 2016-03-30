@@ -57,6 +57,8 @@ passport.use(new GitHubStrategy({
       if (found) {
         callback(null, found);
       } else {
+        console.log(profile);
+        newUser.set('avatar', profile.photos[0].value);
         newUser.save()
         .then(function() {
           callback(null, newUser);
@@ -74,7 +76,6 @@ passport.deserializeUser(function(id, done) {
   new User({'id': id})
     .fetch()
     .then(function(found) {
-      console.log('DID WE FIND THE USER???:     ', found);
       if (!found) {
         done(null, 'User Not Found');
       } else {
@@ -116,6 +117,14 @@ function(req, res) {
 app.get('/create', util.authCheck,
 function(req, res) {
   res.render('index');
+});
+
+app.get('/me', util.authCheck, function(req, res) {
+  var clientUserModel = {
+    username: req.user.get('github') || req.user.get('username'),
+    avatar: req.user.get('avatar') || 'http://www.nyan.cat/cats/original.gif'
+  };
+  res.send(clientUserModel);
 });
 
 app.get('/links', util.authCheck,
